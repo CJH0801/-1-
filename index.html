@@ -2,12 +2,36 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>일본어 문자 연습</title>
+<!-- PWA 메타태그 -->
+<meta name="theme-color" content="#f5f0e8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="일어연습">
+<meta name="description" content="히라가나·가타카나 쓰기/읽기 연습 앱">
+<!-- 인라인 매니페스트 -->
+<link rel="manifest" href="manifest.json">
+<!-- Apple 터치 아이콘 (SVG 인라인) -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='90' fill='%23f5f0e8'/><text x='256' y='340' text-anchor='middle' font-size='300' font-family='serif'>あ</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#f5f0e8;font-family:'Noto Sans KR',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+body{
+  background:#f5f0e8;font-family:'Noto Sans KR',sans-serif;
+  min-height:100vh;min-height:100dvh;
+  display:flex;align-items:center;justify-content:center;
+  padding:16px;
+  padding-top:max(16px, env(safe-area-inset-top));
+  padding-bottom:max(16px, env(safe-area-inset-bottom));
+  padding-left:max(16px, env(safe-area-inset-left));
+  padding-right:max(16px, env(safe-area-inset-right));
+}
+/* standalone 모드(앱으로 실행)일 때 상단 여백 */
+@media all and (display-mode: standalone){
+  body{padding-top:max(24px, env(safe-area-inset-top))}
+}
 .brush{font-family:'Klee One',cursive}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
@@ -92,13 +116,36 @@ button:active{transform:scale(.97)}
 .sys-badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:8px;font-weight:700;vertical-align:middle;margin-right:4px}
 .sys-badge.H{background:#faf0e0;color:#5a3c1a}
 .sys-badge.K{background:#ddeeff;color:#1e4d7a}
-/* 요음 복합 안내 */
+/* 설치 배너 */
+#install-banner{
+  position:fixed;bottom:0;left:0;right:0;
+  background:#3d3225;color:#fff;
+  padding:14px 20px;padding-bottom:max(14px,env(safe-area-inset-bottom));
+  display:flex;align-items:center;gap:12px;
+  z-index:200;animation:slideUp .4s ease both;
+  box-shadow:0 -4px 20px rgba(60,40,20,.2);
+}
+#install-banner .ib-icon{font-size:26px;flex-shrink:0}
+#install-banner .ib-text{flex:1}
+#install-banner .ib-title{font-size:13px;font-weight:700;margin-bottom:2px}
+#install-banner .ib-sub{font-size:11px;opacity:.75;line-height:1.4}
+#install-banner .ib-btn{background:#fff;color:#3d3225;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;white-space:nowrap;flex-shrink:0}
+#install-banner .ib-close{background:none;color:#fff;opacity:.6;font-size:20px;padding:0 4px;flex-shrink:0;font-weight:300}
 .compound-box{display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f8f3ec;border-radius:10px;border:1px solid #e8ddd0;width:150px;height:150px;flex-shrink:0}
 </style>
 </head>
 <body>
 <div id="app"></div>
 <div id="overlay-root"></div>
+<div id="install-banner" style="display:none">
+  <span class="ib-icon">あ</span>
+  <div class="ib-text">
+    <div class="ib-title">앱으로 설치하기</div>
+    <div class="ib-sub">홈 화면에 추가하면 앱처럼 사용할 수 있어요!</div>
+  </div>
+  <button class="ib-btn" onclick="pwaInstall()">설치</button>
+  <button class="ib-close" onclick="pwaDismiss()">✕</button>
+</div>
 <script>
 const SC=["#e74c3c","#2980b9","#27ae60","#f39c12","#8e44ad","#e67e22","#1abc9c","#c0392b","#2c3e50","#d35400"];
 const GEAR='<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="14" stroke="#8a7a66" stroke-width="3"/><circle cx="50" cy="50" r="3" fill="#8a7a66"/><path d="M50 10 L46 22 H54 L50 10Z" fill="#8a7a66"/><path d="M50 90 L46 78 H54 L50 90Z" fill="#8a7a66"/><path d="M10 50 L22 46 V54 L10 50Z" fill="#8a7a66"/><path d="M90 50 L78 46 V54 L90 50Z" fill="#8a7a66"/><path d="M21.7 21.7 L30.5 27.2 L27.2 30.5 L21.7 21.7Z" fill="#8a7a66"/><path d="M78.3 78.3 L69.5 72.8 L72.8 69.5 L78.3 78.3Z" fill="#8a7a66"/><path d="M78.3 21.7 L72.8 30.5 L69.5 27.2 L78.3 21.7Z" fill="#8a7a66"/><path d="M21.7 78.3 L27.2 69.5 L30.5 72.8 L21.7 78.3Z" fill="#8a7a66"/><circle cx="50" cy="10" r="3.5" fill="#c0392b"/><circle cx="50" cy="90" r="3.5" fill="#c0392b"/><circle cx="10" cy="50" r="3.5" fill="#c0392b"/><circle cx="90" cy="50" r="3.5" fill="#c0392b"/></svg>';
@@ -860,6 +907,50 @@ function jumpTo(i){S.idx=i;S.revealed=false;render()}
 function delLog(id){S.logs=saveLogs(S.logs.filter(l=>l.id!==id));render()}
 
 render();
+
+// ======================== PWA ========================
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
+
+// 설치 프롬프트
+let deferredPrompt=null;
+const banner=document.getElementById('install-banner');
+
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();deferredPrompt=e;
+  if(banner&&!localStorage.getItem('pwa_dismissed'))banner.style.display='flex';
+});
+
+window.addEventListener('appinstalled',()=>{
+  if(banner)banner.style.display='none';
+  localStorage.setItem('pwa_dismissed','1');
+});
+
+function pwaInstall(){
+  if(!deferredPrompt)return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(()=>{deferredPrompt=null;if(banner)banner.style.display='none';});
+}
+function pwaDismiss(){
+  if(banner)banner.style.display='none';
+  localStorage.setItem('pwa_dismissed','1');
+}
+
+// iOS는 beforeinstallprompt 없음 → Safari 안내 배너
+function isIOS(){return/iphone|ipad|ipod/i.test(navigator.userAgent)}
+function isInStandalone(){return window.matchMedia('(display-mode:standalone)').matches||navigator.standalone}
+
+if(isIOS()&&!isInStandalone()&&!localStorage.getItem('pwa_dismissed')&&banner){
+  banner.innerHTML=`
+  <span class="ib-icon">あ</span>
+  <div class="ib-text">
+    <div class="ib-title">홈 화면에 추가하기</div>
+    <div class="ib-sub">Safari 하단 <b>공유 버튼 →</b> "홈 화면에 추가" 탭하면 앱처럼 사용 가능!</div>
+  </div>
+  <button class="ib-close" onclick="pwaDismiss()">✕</button>`;
+  banner.style.display='flex';
+}
 </script>
 </body>
 </html>
