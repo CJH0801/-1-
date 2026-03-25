@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>일본어 문자 연습</title>
+<link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#f5f0e8;font-family:'Noto Sans KR',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+.brush{font-family:'Klee One',cursive}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes overlayIn{from{opacity:0}to{opacity:1}}
+.fade{animation:fadeIn .35s ease both}.slide{animation:slideUp .3s ease both}
+button{border:none;border-radius:10px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-weight:600;transition:all .15s}
+button:active{transform:scale(.97)}
+/* 반응형 레이아웃 */
+#app{width:100%;max-width:480px}
+@media(min-width:768px){
+  body{padding:32px}
+  #app{max-width:560px}
+  .sys-grid{grid-template-columns:1fr 1fr;gap:20px}
+  .sys-card{padding:28px 16px}
+  .sys-card p.brush:first-child{font-size:52px!important}
+  .overlay-card{max-width:400px;padding:36px 32px}
+}
+@media(max-width:400px){
+  body{padding:10px}
+  #app{max-width:100%}
+  .sys-grid{gap:8px}
+  .sys-card{padding:16px 8px}
+  .sys-card p.brush:first-child{font-size:34px!important}
+  .row-btn{padding:8px 10px;gap:7px}
+  .overlay-card{padding:22px 16px}
+}
+.card{background:#fffcf8;border-radius:16px;box-shadow:0 4px 24px rgba(120,90,50,.08);overflow:hidden}
+.row-btn{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;cursor:pointer;text-align:left;transition:all .15s;font-family:'Noto Sans KR',sans-serif;width:100%}
+.row-btn.on{border:1.5px solid #3d3225;background:#faf6f0}
+.row-btn.on.K{border-color:#1e4d7a;background:#f0f5fa}
+.row-btn.off{border:1.5px solid #e0d6c8;background:#fff}
+.chk{width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;flex-shrink:0}
+.chk.on.H{background:#3d3225;border:none}.chk.on.K{background:#1e4d7a;border:none}.chk.off{background:#fff;border:1.5px solid #ccc}
+.log-card{background:#fffcf8;border-radius:12px;border:1px solid #e8ddd0;padding:14px 16px;margin-bottom:8px}
+.progress-track{height:3px;background:#ece4d8}
+.progress-bar{height:100%;transition:width .3s ease;border-radius:0 2px 2px 0}
+.answer-area{background:#f8f3ec;border-radius:12px;padding:18px;margin-bottom:20px}
+.answer-char-row{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:8px}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#fff;border:1px solid #e8ddd0;border-radius:10px;margin-bottom:8px}
+.toggle-label{font-size:13px;color:#5a4a3a}.toggle-sub{font-size:10px;color:#a09080}
+.toggle-track{position:relative;width:40px;height:22px;background:#ccc;border-radius:11px;cursor:pointer;transition:background .2s;flex-shrink:0}
+.toggle-track.on{background:#3d3225}
+.toggle-thumb{position:absolute;top:2px;left:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.toggle-track.on .toggle-thumb{left:20px}
+.stroke-box{display:flex;align-items:center;justify-content:center;background:#fff;border-radius:10px;border:1px solid #e8ddd0;width:150px;height:150px;overflow:hidden;flex-shrink:0}
+.stroke-legend{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;justify-content:center}
+.stroke-legend span{font-size:11px;display:flex;align-items:center;gap:3px}
+.stroke-legend i{width:12px;height:3px;border-radius:2px;display:inline-block}
+.overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(40,30,20,.55);display:flex;align-items:center;justify-content:center;z-index:100;animation:overlayIn .2s ease both;padding:16px}
+.overlay-card{background:#fffcf8;border-radius:16px;padding:28px 24px;width:100%;max-width:340px;box-shadow:0 8px 32px rgba(40,30,20,.2)}
+.test-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #f0e8dc}
+.settings-btn{width:32px;height:32px;border-radius:50%;background:rgba(61,50,37,.06);display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid #e8ddd0;padding:0;transition:all .15s;flex-shrink:0}
+.settings-btn:hover{background:rgba(61,50,37,.12)}
+.settings-btn svg{width:18px;height:18px}
+.nav-row{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:16px}
+.nav-btn{width:36px;height:36px;border-radius:50%;background:#fff;border:1px solid #e0d6c8;display:flex;align-items:center;justify-content:center;font-size:16px;color:#8a7a66;cursor:pointer;padding:0;transition:all .15s}
+.nav-btn:hover{background:#f5f0e8}.nav-btn:disabled{opacity:.3;cursor:default}
+.dot-row{display:flex;gap:4px;align-items:center;flex-wrap:wrap;justify-content:center;max-width:280px}
+.dot{width:8px;height:8px;border-radius:50%;cursor:pointer;transition:all .15s;flex-shrink:0}
+.dot.empty{background:#e0d6c8}.dot.correct{background:#2d8a4e}.dot.wrong{background:#c0392b}.dot.current{transform:scale(1.4);box-shadow:0 0 0 2px #3d3225}
+.mode-tabs{display:flex;border-radius:10px;overflow:hidden;border:1.5px solid #3d3225;margin-bottom:16px}
+.mode-tabs.K{border-color:#1e4d7a}
+.mode-tab{flex:1;padding:10px;font-size:13px;text-align:center;cursor:pointer;transition:all .15s;background:#fff;color:#3d3225;border:none;font-family:'Noto Sans KR',sans-serif;font-weight:600}
+.mode-tab.K{color:#1e4d7a}
+.mode-tab.active.H{background:#3d3225;color:#fff}
+.mode-tab.active.K{background:#1e4d7a;color:#fff}
+.speak-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:20px;background:#fff;border:1px solid #e0d6c8;color:#5a4a3a;font-size:12px;cursor:pointer;font-weight:500;margin-top:8px;transition:all .15s;font-family:'Noto Sans KR',sans-serif}
+.speak-btn:hover{background:#f5f0e8;border-color:#c4a882}
+.review-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;margin-left:6px}
+.review-badge.correct{background:#e8f5e9;color:#2d8a4e}
+.review-badge.wrong{background:#fde8e8;color:#c0392b}
+/* 시스템 선택 카드 */
+.sys-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px}
+.sys-card{background:#fffcf8;border-radius:14px;border:2px solid #e0d6c8;padding:22px 12px;text-align:center;cursor:pointer;transition:all .2s;box-shadow:0 2px 8px rgba(120,90,50,.06)}
+.sys-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(120,90,50,.14)}
+.sys-card.H:hover{border-color:#3d3225;background:#faf6f0}
+.sys-card.K:hover{border-color:#1e4d7a;background:#f0f5fa}
+/* 섹션 구분자 */
+.sec-div{display:flex;align-items:center;gap:10px;margin:14px 0 7px;color:#8a7a66;font-size:11px;font-weight:700;letter-spacing:.5px}
+.sec-div::before,.sec-div::after{content:'';flex:1;height:1px;background:#e0d6c8}
+/* 시스템 뱃지 */
+.sys-badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:8px;font-weight:700;vertical-align:middle;margin-right:4px}
+.sys-badge.H{background:#faf0e0;color:#5a3c1a}
+.sys-badge.K{background:#ddeeff;color:#1e4d7a}
+/* 요음 복합 안내 */
+.compound-box{display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f8f3ec;border-radius:10px;border:1px solid #e8ddd0;width:150px;height:150px;flex-shrink:0}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="overlay-root"></div>
+<script>
+const SC=["#e74c3c","#2980b9","#27ae60","#f39c12","#8e44ad","#e67e22","#1abc9c","#c0392b","#2c3e50","#d35400"];
+const GEAR='<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="14" stroke="#8a7a66" stroke-width="3"/><circle cx="50" cy="50" r="3" fill="#8a7a66"/><path d="M50 10 L46 22 H54 L50 10Z" fill="#8a7a66"/><path d="M50 90 L46 78 H54 L50 90Z" fill="#8a7a66"/><path d="M10 50 L22 46 V54 L10 50Z" fill="#8a7a66"/><path d="M90 50 L78 46 V54 L90 50Z" fill="#8a7a66"/><path d="M21.7 21.7 L30.5 27.2 L27.2 30.5 L21.7 21.7Z" fill="#8a7a66"/><path d="M78.3 78.3 L69.5 72.8 L72.8 69.5 L78.3 78.3Z" fill="#8a7a66"/><path d="M78.3 21.7 L72.8 30.5 L69.5 27.2 L78.3 21.7Z" fill="#8a7a66"/><path d="M21.7 78.3 L27.2 69.5 L30.5 72.8 L21.7 78.3Z" fill="#8a7a66"/><circle cx="50" cy="10" r="3.5" fill="#c0392b"/><circle cx="50" cy="90" r="3.5" fill="#c0392b"/><circle cx="10" cy="50" r="3.5" fill="#c0392b"/><circle cx="90" cy="50" r="3.5" fill="#c0392b"/></svg>';
+
+// ======================== HIRAGANA DATA ========================
+const HDATA=[
+  // 기본 오십음 (0-45)
+  {r:"a",c:"あ",u:"3042",d:"3획: ① 가로획 → ② 세로+꺾임 → ③ 둥근 곡선"},
+  {r:"i",c:"い",u:"3044",d:"2획: ① 왼쪽 세로 → ② 오른쪽 곡선"},
+  {r:"u",c:"う",u:"3046",d:"2획: ① 짧은 점 → ② 아래 곡선"},
+  {r:"e",c:"え",u:"3048",d:"2획: ① 위 꺾임 → ② 아래 곡선"},
+  {r:"o",c:"お",u:"304a",d:"3획: ① 가로획 → ② 세로+곡선 → ③ 점"},
+  {r:"ka",c:"か",u:"304b",d:"3획: ① 가로획 → ② 세로+꺾임 → ③ 오른쪽 곡선"},
+  {r:"ki",c:"き",u:"304d",d:"4획: ① 가로 → ② 가로 → ③ 세로+꺾임 → ④ 곡선"},
+  {r:"ku",c:"く",u:"304f",d:"1획: 꺾인 선 하나"},
+  {r:"ke",c:"け",u:"3051",d:"3획: ① 세로 → ② 가로+꺾임 → ③ 오른쪽 세로"},
+  {r:"ko",c:"こ",u:"3053",d:"2획: ① 위 가로 → ② 아래 곡선"},
+  {r:"sa",c:"さ",u:"3055",d:"3획: ① 가로 → ② 세로+꺾임 → ③ 곡선"},
+  {r:"shi",c:"し",u:"3057",d:"1획: 세로+올림 곡선"},
+  {r:"su",c:"す",u:"3059",d:"2획: ① 가로 → ② 세로+루프"},
+  {r:"se",c:"せ",u:"305b",d:"3획: ① 세로 → ② 가로 → ③ 아래+곡선"},
+  {r:"so",c:"そ",u:"305d",d:"1획: 꺾이며 내려오는 곡선"},
+  {r:"ta",c:"た",u:"305f",d:"4획: ① 가로 → ② 세로+곡선 → ③ 왼점 → ④ 오른점"},
+  {r:"chi",c:"ち",u:"3061",d:"2획: ① 가로+꺾임 → ② 곡선"},
+  {r:"tsu",c:"つ",u:"3064",d:"1획: 곡선 하나"},
+  {r:"te",c:"て",u:"3066",d:"1획: 가로+아래 곡선"},
+  {r:"to",c:"と",u:"3068",d:"2획: ① 세로+꺾임 → ② 곡선"},
+  {r:"na",c:"な",u:"306a",d:"4획: ① 가로 → ② 세로 → ③ 점 → ④ 루프"},
+  {r:"ni",c:"に",u:"306b",d:"3획: ① 세로 → ② 위 가로 → ③ 아래 가로"},
+  {r:"nu",c:"ぬ",u:"306c",d:"2획: ① 주획 → ② 동그라미"},
+  {r:"ne",c:"ね",u:"306d",d:"2획: ① 세로 → ② 복합 곡선"},
+  {r:"no",c:"の",u:"306e",d:"1획: 둥근 루프"},
+  {r:"ha",c:"は",u:"306f",d:"3획: ① 세로 → ② 가로+세로 → ③ 루프"},
+  {r:"hi",c:"ひ",u:"3072",d:"1획: S자 곡선"},
+  {r:"fu",c:"ふ",u:"3075",d:"4획: ① 점 → ② 곡선 → ③ 왼점 → ④ 오른점"},
+  {r:"he",c:"へ",u:"3078",d:"1획: 산 모양"},
+  {r:"ho",c:"ほ",u:"307b",d:"4획: ① 세로 → ② 위가로 → ③ 아래가로+세로 → ④ 루프"},
+  {r:"ma",c:"ま",u:"307e",d:"3획: ① 가로 → ② 가로 → ③ 세로+루프"},
+  {r:"mi",c:"み",u:"307f",d:"2획: ① 위 꺾임 → ② 아래 루프"},
+  {r:"mu",c:"む",u:"3080",d:"3획: ① 가로+곡선 → ② 점 → ③ 마무리"},
+  {r:"me",c:"め",u:"3081",d:"2획: ① 주획 → ② 동그라미"},
+  {r:"mo",c:"も",u:"3082",d:"3획: ① 가로 → ② 가로 → ③ 세로+곡선"},
+  {r:"ya",c:"や",u:"3084",d:"3획: ① 왼쪽 곡선 → ② 가로+꺾임 → ③ 세로"},
+  {r:"yu",c:"ゆ",u:"3086",d:"2획: ① 세로+곡선 → ② 오른쪽 곡선"},
+  {r:"yo",c:"よ",u:"3088",d:"2획: ① 가로+세로 → ② 곡선"},
+  {r:"ra",c:"ら",u:"3089",d:"2획: ① 점 → ② 곡선"},
+  {r:"ri",c:"り",u:"308a",d:"2획: ① 왼쪽 세로 → ② 오른쪽 곡선"},
+  {r:"ru",c:"る",u:"308b",d:"1획: 위→아래+동그라미"},
+  {r:"re",c:"れ",u:"308c",d:"2획: ① 세로 → ② 복합 곡선"},
+  {r:"ro",c:"ろ",u:"308d",d:"1획: 위에서 아래 곡선"},
+  {r:"wa",c:"わ",u:"308f",d:"2획: ① 세로 → ② 가로+곡선"},
+  {r:"wo",c:"を",u:"3092",d:"3획: ① 위가로 → ② 중간+꺾임 → ③ 아래 곡선"},
+  {r:"n",c:"ん",u:"3093",d:"1획: 올려 감는 곡선"},
+  // 탁음 (46-65)
+  {r:"ga",c:"が",u:"304c",d:"か+탁점 (3획)"},
+  {r:"gi",c:"ぎ",u:"304e",d:"き+탁점 (4획)"},
+  {r:"gu",c:"ぐ",u:"3050",d:"く+탁점 (1획)"},
+  {r:"ge",c:"げ",u:"3052",d:"け+탁점 (3획)"},
+  {r:"go",c:"ご",u:"3054",d:"こ+탁점 (2획)"},
+  {r:"za",c:"ざ",u:"3056",d:"さ+탁점 (3획)"},
+  {r:"ji",c:"じ",u:"3058",d:"し+탁점 (1획)"},
+  {r:"zu",c:"ず",u:"305a",d:"す+탁점 (2획)"},
+  {r:"ze",c:"ぜ",u:"305c",d:"せ+탁점 (3획)"},
+  {r:"zo",c:"ぞ",u:"305e",d:"そ+탁점 (1획)"},
+  {r:"da",c:"だ",u:"3060",d:"た+탁점 (4획)"},
+  {r:"di",c:"ぢ",u:"3062",d:"ち+탁점 (2획)"},
+  {r:"du",c:"づ",u:"3065",d:"つ+탁점 (1획)"},
+  {r:"de",c:"で",u:"3067",d:"て+탁점 (1획)"},
+  {r:"do",c:"ど",u:"3069",d:"と+탁점 (2획)"},
+  {r:"ba",c:"ば",u:"3070",d:"は+탁점 (3획)"},
+  {r:"bi",c:"び",u:"3073",d:"ひ+탁점 (1획)"},
+  {r:"bu",c:"ぶ",u:"3076",d:"ふ+탁점 (4획)"},
+  {r:"be",c:"べ",u:"3079",d:"へ+탁점 (1획)"},
+  {r:"bo",c:"ぼ",u:"307c",d:"ほ+탁점 (4획)"},
+  // 반탁음 (66-70)
+  {r:"pa",c:"ぱ",u:"3071",d:"は+반탁점 (3획)"},
+  {r:"pi",c:"ぴ",u:"3074",d:"ひ+반탁점 (1획)"},
+  {r:"pu",c:"ぷ",u:"3077",d:"ふ+반탁점 (4획)"},
+  {r:"pe",c:"ぺ",u:"307a",d:"へ+반탁점 (1획)"},
+  {r:"po",c:"ぽ",u:"307d",d:"ほ+반탁점 (4획)"},
+  // 요음 (71-103) — u:null = 복합 문자, KanjiVG 없음
+  {r:"kya",c:"きゃ",u:null,d:"き + 작은 ゃ"},
+  {r:"kyu",c:"きゅ",u:null,d:"き + 작은 ゅ"},
+  {r:"kyo",c:"きょ",u:null,d:"き + 작은 ょ"},
+  {r:"sha",c:"しゃ",u:null,d:"し + 작은 ゃ"},
+  {r:"shu",c:"しゅ",u:null,d:"し + 작은 ゅ"},
+  {r:"sho",c:"しょ",u:null,d:"し + 작은 ょ"},
+  {r:"cha",c:"ちゃ",u:null,d:"ち + 작은 ゃ"},
+  {r:"chu",c:"ちゅ",u:null,d:"ち + 작은 ゅ"},
+  {r:"cho",c:"ちょ",u:null,d:"ち + 작은 ょ"},
+  {r:"nya",c:"にゃ",u:null,d:"に + 작은 ゃ"},
+  {r:"nyu",c:"にゅ",u:null,d:"に + 작은 ゅ"},
+  {r:"nyo",c:"にょ",u:null,d:"に + 작은 ょ"},
+  {r:"hya",c:"ひゃ",u:null,d:"ひ + 작은 ゃ"},
+  {r:"hyu",c:"ひゅ",u:null,d:"ひ + 작은 ゅ"},
+  {r:"hyo",c:"ひょ",u:null,d:"ひ + 작은 ょ"},
+  {r:"mya",c:"みゃ",u:null,d:"み + 작은 ゃ"},
+  {r:"myu",c:"みゅ",u:null,d:"み + 작은 ゅ"},
+  {r:"myo",c:"みょ",u:null,d:"み + 작은 ょ"},
+  {r:"rya",c:"りゃ",u:null,d:"り + 작은 ゃ"},
+  {r:"ryu",c:"りゅ",u:null,d:"り + 작은 ゅ"},
+  {r:"ryo",c:"りょ",u:null,d:"り + 작은 ょ"},
+  {r:"gya",c:"ぎゃ",u:null,d:"ぎ + 작은 ゃ"},
+  {r:"gyu",c:"ぎゅ",u:null,d:"ぎ + 작은 ゅ"},
+  {r:"gyo",c:"ぎょ",u:null,d:"ぎ + 작은 ょ"},
+  {r:"ja",c:"じゃ",u:null,d:"じ + 작은 ゃ"},
+  {r:"ju",c:"じゅ",u:null,d:"じ + 작은 ゅ"},
+  {r:"jo",c:"じょ",u:null,d:"じ + 작은 ょ"},
+  {r:"bya",c:"びゃ",u:null,d:"び + 작은 ゃ"},
+  {r:"byu",c:"びゅ",u:null,d:"び + 작은 ゅ"},
+  {r:"byo",c:"びょ",u:null,d:"び + 작은 ょ"},
+  {r:"pya",c:"ぴゃ",u:null,d:"ぴ + 작은 ゃ"},
+  {r:"pyu",c:"ぴゅ",u:null,d:"ぴ + 작은 ゅ"},
+  {r:"pyo",c:"ぴょ",u:null,d:"ぴ + 작은 ょ"},
+];
+
+const HROWS=[
+  {section:"기본 오십음"},
+  {label:"あ행",kr:"아 이 우 에 오",idx:[0,1,2,3,4]},
+  {label:"か행",kr:"카 키 쿠 케 코",idx:[5,6,7,8,9]},
+  {label:"さ행",kr:"사 시 스 세 소",idx:[10,11,12,13,14]},
+  {label:"た행",kr:"타 치 츠 테 토",idx:[15,16,17,18,19]},
+  {label:"な행",kr:"나 니 누 네 노",idx:[20,21,22,23,24]},
+  {label:"は행",kr:"하 히 후 헤 호",idx:[25,26,27,28,29]},
+  {label:"ま행",kr:"마 미 무 메 모",idx:[30,31,32,33,34]},
+  {label:"や행",kr:"야 유 요",idx:[35,36,37]},
+  {label:"ら행",kr:"라 리 루 레 로",idx:[38,39,40,41,42]},
+  {label:"わ행",kr:"와 오 응",idx:[43,44,45]},
+  {section:"탁음 / 반탁음"},
+  {label:"が행 (탁)",kr:"가 기 구 게 고",idx:[46,47,48,49,50]},
+  {label:"ざ행 (탁)",kr:"자 지 즈 제 조",idx:[51,52,53,54,55]},
+  {label:"だ행 (탁)",kr:"다 지 즈 데 도",idx:[56,57,58,59,60]},
+  {label:"ば행 (탁)",kr:"바 비 부 베 보",idx:[61,62,63,64,65]},
+  {label:"ぱ행 (반탁)",kr:"파 피 푸 페 포",idx:[66,67,68,69,70]},
+  {section:"요음"},
+  {label:"きゃ행",kr:"캬 큐 쿄",idx:[71,72,73]},
+  {label:"しゃ행",kr:"샤 슈 쇼",idx:[74,75,76]},
+  {label:"ちゃ행",kr:"챠 츄 쵸",idx:[77,78,79]},
+  {label:"にゃ행",kr:"냐 뉴 뇨",idx:[80,81,82]},
+  {label:"ひゃ행",kr:"햐 휴 효",idx:[83,84,85]},
+  {label:"みゃ행",kr:"먀 뮤 묘",idx:[86,87,88]},
+  {label:"りゃ행",kr:"랴 류 료",idx:[89,90,91]},
+  {label:"ぎゃ행 (탁)",kr:"갸 규 교",idx:[92,93,94]},
+  {label:"じゃ행 (탁)",kr:"쟈 쥬 죠",idx:[95,96,97]},
+  {label:"びゃ행 (탁)",kr:"뱌 뷰 뵤",idx:[98,99,100]},
+  {label:"ぴゃ행 (반탁)",kr:"퍄 퓨 표",idx:[101,102,103]},
+];
+
+// ======================== KATAKANA DATA ========================
+const KDATA=[
+  // 기본 오십음 (0-45)
+  {r:"a",c:"ア",u:"30a2",d:"3획: ① 가로 → ② 왼쪽 사선 → ③ 오른쪽 사선"},
+  {r:"i",c:"イ",u:"30a4",d:"2획: ① 왼쪽 짧은 사선 → ② 세로+꺾임"},
+  {r:"u",c:"ウ",u:"30a6",d:"3획: ① 짧은 가로 → ② 왼꺾임 → ③ 오른꺾임"},
+  {r:"e",c:"エ",u:"30a8",d:"3획: ① 위가로 → ② 세로 → ③ 아래가로"},
+  {r:"o",c:"オ",u:"30aa",d:"3획: ① 가로 → ② 세로 → ③ 사선"},
+  {r:"ka",c:"カ",u:"30ab",d:"2획: ① 세로 → ② 가로+꺾임"},
+  {r:"ki",c:"キ",u:"30ad",d:"3획: ① 가로 → ② 가로 → ③ 세로"},
+  {r:"ku",c:"ク",u:"30af",d:"2획: ① 꺾임 → ② 사선"},
+  {r:"ke",c:"ケ",u:"30b1",d:"3획: ① 세로 → ② 가로+꺾임 → ③ 사선"},
+  {r:"ko",c:"コ",u:"30b3",d:"2획: ① 위가로+세로 → ② 아래가로"},
+  {r:"sa",c:"サ",u:"30b5",d:"3획: ① 가로 → ② 가로 → ③ 세로+꺾임"},
+  {r:"shi",c:"シ",u:"30b7",d:"3획: ① 왼점 → ② 오른점 → ③ 대각선"},
+  {r:"su",c:"ス",u:"30b9",d:"2획: ① 가로+꺾임 → ② 사선"},
+  {r:"se",c:"セ",u:"30bb",d:"2획: ① 세로+가로 → ② 아래가로"},
+  {r:"so",c:"ソ",u:"30bd",d:"2획: ① 점 → ② 대각선+꺾임"},
+  {r:"ta",c:"タ",u:"30bf",d:"3획: ① 가로 → ② 가로+꺾임 → ③ 사선"},
+  {r:"chi",c:"チ",u:"30c1",d:"3획: ① 가로 → ② 가로 → ③ 세로+꺾임"},
+  {r:"tsu",c:"ツ",u:"30c4",d:"3획: ① 점 → ② 점 → ③ 꺾인 곡선"},
+  {r:"te",c:"テ",u:"30c6",d:"3획: ① 가로 → ② 가로 → ③ 세로"},
+  {r:"to",c:"ト",u:"30c8",d:"2획: ① 세로 → ② 짧은 가로"},
+  {r:"na",c:"ナ",u:"30ca",d:"2획: ① 가로 → ② 세로"},
+  {r:"ni",c:"ニ",u:"30cb",d:"2획: ① 위가로 → ② 아래가로"},
+  {r:"nu",c:"ヌ",u:"30cc",d:"2획: ① 가로+사선 → ② 루프"},
+  {r:"ne",c:"ネ",u:"30cd",d:"4획: ① 가로 → ② 세로 → ③ 왼점 → ④ 오른꺾임"},
+  {r:"no",c:"ノ",u:"30ce",d:"1획: 사선 하나"},
+  {r:"ha",c:"ハ",u:"30cf",d:"2획: ① 왼쪽 사선 → ② 오른쪽 꺾임"},
+  {r:"hi",c:"ヒ",u:"30d2",d:"2획: ① 세로+가로 → ② 아래가로"},
+  {r:"fu",c:"フ",u:"30d5",d:"1획: 가로+꺾임 사선"},
+  {r:"he",c:"ヘ",u:"30d8",d:"1획: 산 모양"},
+  {r:"ho",c:"ホ",u:"30db",d:"4획: ① 가로 → ② 세로 → ③ 왼점 → ④ 오른점"},
+  {r:"ma",c:"マ",u:"30de",d:"3획: ① 가로 → ② 가로+꺾임 → ③ 사선"},
+  {r:"mi",c:"ミ",u:"30df",d:"3획: ① 가로 → ② 가로 → ③ 가로+꺾임"},
+  {r:"mu",c:"ム",u:"30e0",d:"2획: ① 꺾임 → ② 아래곡선"},
+  {r:"me",c:"メ",u:"30e1",d:"2획: ① 가로+사선 → ② 사선"},
+  {r:"mo",c:"モ",u:"30e2",d:"3획: ① 가로 → ② 가로 → ③ 세로+꺾임"},
+  {r:"ya",c:"ヤ",u:"30e4",d:"2획: ① 가로+꺾임 → ② 세로"},
+  {r:"yu",c:"ユ",u:"30e6",d:"2획: ① 가로+세로 → ② 가로"},
+  {r:"yo",c:"ヨ",u:"30e8",d:"3획: ① 가로+세로 → ② 가로 → ③ 가로"},
+  {r:"ra",c:"ラ",u:"30e9",d:"2획: ① 가로+꺾임 → ② 꺾인 곡선"},
+  {r:"ri",c:"リ",u:"30ea",d:"2획: ① 왼쪽 꺾임 → ② 오른쪽 세로+꺾임"},
+  {r:"ru",c:"ル",u:"30eb",d:"2획: ① 세로+꺾임 → ② 사선+루프"},
+  {r:"re",c:"レ",u:"30ec",d:"1획: 세로+꺾임"},
+  {r:"ro",c:"ロ",u:"30ed",d:"3획: ① 가로+세로 → ② 세로 → ③ 가로"},
+  {r:"wa",c:"ワ",u:"30ef",d:"2획: ① 가로+세로 → ② 꺾인 곡선"},
+  {r:"wo",c:"ヲ",u:"30f2",d:"3획: ① 가로 → ② 가로+꺾임 → ③ 세로"},
+  {r:"n",c:"ン",u:"30f3",d:"2획: ① 점 → ② 꺾임+사선"},
+  // 탁음 (46-65)
+  {r:"ga",c:"ガ",u:"30ac",d:"カ+탁점 (2획)"},
+  {r:"gi",c:"ギ",u:"30ae",d:"キ+탁점 (3획)"},
+  {r:"gu",c:"グ",u:"30b0",d:"ク+탁점 (2획)"},
+  {r:"ge",c:"ゲ",u:"30b2",d:"ケ+탁점 (3획)"},
+  {r:"go",c:"ゴ",u:"30b4",d:"コ+탁점 (2획)"},
+  {r:"za",c:"ザ",u:"30b6",d:"サ+탁점 (3획)"},
+  {r:"ji",c:"ジ",u:"30b8",d:"シ+탁점 (3획)"},
+  {r:"zu",c:"ズ",u:"30ba",d:"ス+탁점 (2획)"},
+  {r:"ze",c:"ゼ",u:"30bc",d:"セ+탁점 (2획)"},
+  {r:"zo",c:"ゾ",u:"30be",d:"ソ+탁점 (2획)"},
+  {r:"da",c:"ダ",u:"30c0",d:"タ+탁점 (3획)"},
+  {r:"di",c:"ヂ",u:"30c2",d:"チ+탁점 (3획)"},
+  {r:"du",c:"ヅ",u:"30c5",d:"ツ+탁점 (3획)"},
+  {r:"de",c:"デ",u:"30c7",d:"テ+탁점 (3획)"},
+  {r:"do",c:"ド",u:"30c9",d:"ト+탁점 (2획)"},
+  {r:"ba",c:"バ",u:"30d0",d:"ハ+탁점 (2획)"},
+  {r:"bi",c:"ビ",u:"30d3",d:"ヒ+탁점 (2획)"},
+  {r:"bu",c:"ブ",u:"30d6",d:"フ+탁점 (1획)"},
+  {r:"be",c:"ベ",u:"30d9",d:"ヘ+탁점 (1획)"},
+  {r:"bo",c:"ボ",u:"30dc",d:"ホ+탁점 (4획)"},
+  // 반탁음 (66-70)
+  {r:"pa",c:"パ",u:"30d1",d:"ハ+반탁점 (2획)"},
+  {r:"pi",c:"ピ",u:"30d4",d:"ヒ+반탁점 (2획)"},
+  {r:"pu",c:"プ",u:"30d7",d:"フ+반탁점 (1획)"},
+  {r:"pe",c:"ペ",u:"30da",d:"ヘ+반탁점 (1획)"},
+  {r:"po",c:"ポ",u:"30dd",d:"ホ+반탁점 (4획)"},
+  // 요음 (71-103)
+  {r:"kya",c:"キャ",u:null,d:"キ + 작은 ャ"},
+  {r:"kyu",c:"キュ",u:null,d:"キ + 작은 ュ"},
+  {r:"kyo",c:"キョ",u:null,d:"キ + 작은 ョ"},
+  {r:"sha",c:"シャ",u:null,d:"シ + 작은 ャ"},
+  {r:"shu",c:"シュ",u:null,d:"シ + 작은 ュ"},
+  {r:"sho",c:"ショ",u:null,d:"シ + 작은 ョ"},
+  {r:"cha",c:"チャ",u:null,d:"チ + 작은 ャ"},
+  {r:"chu",c:"チュ",u:null,d:"チ + 작은 ュ"},
+  {r:"cho",c:"チョ",u:null,d:"チ + 작은 ョ"},
+  {r:"nya",c:"ニャ",u:null,d:"ニ + 작은 ャ"},
+  {r:"nyu",c:"ニュ",u:null,d:"ニ + 작은 ュ"},
+  {r:"nyo",c:"ニョ",u:null,d:"ニ + 작은 ョ"},
+  {r:"hya",c:"ヒャ",u:null,d:"ヒ + 작은 ャ"},
+  {r:"hyu",c:"ヒュ",u:null,d:"ヒ + 작은 ュ"},
+  {r:"hyo",c:"ヒョ",u:null,d:"ヒ + 작은 ョ"},
+  {r:"mya",c:"ミャ",u:null,d:"ミ + 작은 ャ"},
+  {r:"myu",c:"ミュ",u:null,d:"ミ + 작은 ュ"},
+  {r:"myo",c:"ミョ",u:null,d:"ミ + 작은 ョ"},
+  {r:"rya",c:"リャ",u:null,d:"リ + 작은 ャ"},
+  {r:"ryu",c:"リュ",u:null,d:"リ + 작은 ュ"},
+  {r:"ryo",c:"リョ",u:null,d:"リ + 작은 ョ"},
+  {r:"gya",c:"ギャ",u:null,d:"ギ + 작은 ャ"},
+  {r:"gyu",c:"ギュ",u:null,d:"ギ + 작은 ュ"},
+  {r:"gyo",c:"ギョ",u:null,d:"ギ + 작은 ョ"},
+  {r:"ja",c:"ジャ",u:null,d:"ジ + 작은 ャ"},
+  {r:"ju",c:"ジュ",u:null,d:"ジ + 작은 ュ"},
+  {r:"jo",c:"ジョ",u:null,d:"ジ + 작은 ョ"},
+  {r:"bya",c:"ビャ",u:null,d:"ビ + 작은 ャ"},
+  {r:"byu",c:"ビュ",u:null,d:"ビ + 작은 ュ"},
+  {r:"byo",c:"ビョ",u:null,d:"ビ + 작은 ョ"},
+  {r:"pya",c:"ピャ",u:null,d:"ピ + 작은 ャ"},
+  {r:"pyu",c:"ピュ",u:null,d:"ピ + 작은 ュ"},
+  {r:"pyo",c:"ピョ",u:null,d:"ピ + 작은 ョ"},
+];
+
+const KROWS=[
+  {section:"기본 오십음"},
+  {label:"ア행",kr:"아 이 우 에 오",idx:[0,1,2,3,4]},
+  {label:"カ행",kr:"카 키 쿠 케 코",idx:[5,6,7,8,9]},
+  {label:"サ행",kr:"사 시 스 세 소",idx:[10,11,12,13,14]},
+  {label:"タ행",kr:"타 치 츠 테 토",idx:[15,16,17,18,19]},
+  {label:"ナ행",kr:"나 니 누 네 노",idx:[20,21,22,23,24]},
+  {label:"ハ행",kr:"하 히 후 헤 호",idx:[25,26,27,28,29]},
+  {label:"マ행",kr:"마 미 무 메 모",idx:[30,31,32,33,34]},
+  {label:"ヤ행",kr:"야 유 요",idx:[35,36,37]},
+  {label:"ラ행",kr:"라 리 루 레 로",idx:[38,39,40,41,42]},
+  {label:"ワ행",kr:"와 오 응",idx:[43,44,45]},
+  {section:"탁음 / 반탁음"},
+  {label:"ガ행 (탁)",kr:"가 기 구 게 고",idx:[46,47,48,49,50]},
+  {label:"ザ행 (탁)",kr:"자 지 즈 제 조",idx:[51,52,53,54,55]},
+  {label:"ダ행 (탁)",kr:"다 지 즈 데 도",idx:[56,57,58,59,60]},
+  {label:"バ행 (탁)",kr:"바 비 부 베 보",idx:[61,62,63,64,65]},
+  {label:"パ행 (반탁)",kr:"파 피 푸 페 포",idx:[66,67,68,69,70]},
+  {section:"요음"},
+  {label:"キャ행",kr:"캬 큐 쿄",idx:[71,72,73]},
+  {label:"シャ행",kr:"샤 슈 쇼",idx:[74,75,76]},
+  {label:"チャ행",kr:"챠 츄 쵸",idx:[77,78,79]},
+  {label:"ニャ행",kr:"냐 뉴 뇨",idx:[80,81,82]},
+  {label:"ヒャ행",kr:"햐 휴 효",idx:[83,84,85]},
+  {label:"ミャ행",kr:"먀 뮤 묘",idx:[86,87,88]},
+  {label:"リャ행",kr:"랴 류 료",idx:[89,90,91]},
+  {label:"ギャ행 (탁)",kr:"갸 규 교",idx:[92,93,94]},
+  {label:"ジャ행 (탁)",kr:"쟈 쥬 죠",idx:[95,96,97]},
+  {label:"ビャ행 (탁)",kr:"뱌 뷰 뵤",idx:[98,99,100]},
+  {label:"ピャ행 (반탁)",kr:"퍄 퓨 표",idx:[101,102,103]},
+];
+
+// ======================== 유틸 ========================
+const LKEY="jpn_logs_v2",SKEY="hiragana_stroke_on";
+function loadLogs(){try{return JSON.parse(localStorage.getItem(LKEY))||[]}catch{return[]}}
+function saveLogs(l){const t=l.slice(-10);localStorage.setItem(LKEY,JSON.stringify(t));return t}
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
+
+// TTS
+function speak(ch){
+  if(!('speechSynthesis' in window))return;
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(ch.c);
+  u.lang='ja-JP';u.rate=0.7;u.pitch=1;
+  const voices=window.speechSynthesis.getVoices();
+  const ja=voices.find(v=>v.lang.startsWith('ja'));
+  if(ja)u.voice=ja;
+  window.speechSynthesis.speak(u);
+}
+if('speechSynthesis' in window){speechSynthesis.getVoices();speechSynthesis.onvoiceschanged=()=>{speechSynthesis.getVoices()}}
+
+// KanjiVG SVG stroke
+let svgC={};
+async function fetchSVG(ch){
+  if(!ch.u)return null;
+  const code="0"+ch.u;if(svgC[code])return svgC[code];
+  try{const r=await fetch(`https://raw.githubusercontent.com/KanjiVG/kanjivg/master/kanji/${code}.svg`,{signal:AbortSignal.timeout(5000)});
+  if(!r.ok)throw 0;const t=await r.text();svgC[code]=t;return t}catch{return null}
+}
+function drawSVG(svgT,tid){
+  const box=document.getElementById(tid);if(!box)return;
+  if(!svgT){box.innerHTML='<span style="font-size:11px;color:#c0a0a0;text-align:center;line-height:1.4;padding:8px">오프라인<br>불러오기 불가</span>';return}
+  const p=new DOMParser(),doc=p.parseFromString(svgT,"image/svg+xml"),svg=doc.querySelector("svg");
+  if(!svg){box.innerHTML='<span style="font-size:11px;color:#c0a0a0">오류</span>';return}
+  svg.setAttribute("viewBox","0 0 109 109");svg.removeAttribute("width");svg.removeAttribute("height");
+  svg.style.width="130px";svg.style.height="130px";
+  const ns="http://www.w3.org/2000/svg",g=doc.createElementNS(ns,"g");
+  [["54.5","0","54.5","109"],["0","54.5","109","54.5"]].forEach(([x1,y1,x2,y2])=>{
+    const l=doc.createElementNS(ns,"line");l.setAttribute("x1",x1);l.setAttribute("y1",y1);
+    l.setAttribute("x2",x2);l.setAttribute("y2",y2);l.setAttribute("stroke","#e0d6c8");
+    l.setAttribute("stroke-width","0.5");l.setAttribute("stroke-dasharray","3,3");g.appendChild(l)});
+  svg.insertBefore(g,svg.firstChild);
+  const paths=[];svg.querySelectorAll("path[id]").forEach(p=>{if((p.getAttribute("id")||"").match(/-s\d+$/))paths.push(p)});
+  paths.forEach((p,i)=>{
+    const color=SC[i%SC.length];p.setAttribute("stroke",color);p.setAttribute("stroke-width","4");
+    p.setAttribute("stroke-linecap","round");p.setAttribute("stroke-linejoin","round");p.setAttribute("fill","none");p.style.opacity="0.85";
+    const m=(p.getAttribute("d")||"").match(/^[Mm]\s*([\d.]+)[,\s]+([\d.]+)/);
+    if(m){const cx=parseFloat(m[1]),cy=parseFloat(m[2]);
+      const ci=doc.createElementNS(ns,"circle");ci.setAttribute("cx",cx);ci.setAttribute("cy",cy);
+      ci.setAttribute("r","6");ci.setAttribute("fill",color);ci.setAttribute("opacity","0.9");
+      const tx=doc.createElementNS(ns,"text");tx.setAttribute("x",cx);tx.setAttribute("y",String(cy+1));
+      tx.setAttribute("text-anchor","middle");tx.setAttribute("dominant-baseline","central");
+      tx.setAttribute("fill","#fff");tx.setAttribute("font-size","8");tx.setAttribute("font-weight","700");
+      tx.setAttribute("font-family","sans-serif");tx.textContent=String(i+1);svg.appendChild(ci);svg.appendChild(tx)}});
+  let legend='<div class="stroke-legend">';
+  paths.forEach((_,i)=>{legend+=`<span><i style="background:${SC[i%SC.length]}"></i>${i+1}획</span>`});legend+='</div>';
+  box.innerHTML="";box.appendChild(svg);
+  const la=document.getElementById("stroke-legend-area");if(la)la.innerHTML=legend;
+}
+
+// ======================== STATE ========================
+let S={
+  system:null,      // "H" = 히라가나, "K" = 가타카나
+  screen:"title",
+  mode:"write",
+  sel:new Set(),
+  deck:[],idx:0,revealed:false,
+  answers:[],
+  logs:loadLogs(),testLabel:"",
+  strokeOn:localStorage.getItem(SKEY)==="true",
+  paused:false,
+  orderPopup:false,  // 순서 선택 팝업
+  pendingChars:null,pendingLabel:""
+};
+
+function curData(){return S.system==="K"?KDATA:HDATA}
+function curRows(){return S.system==="K"?KROWS:HROWS}
+function rowItems(){return curRows().filter(r=>!r.section)}
+function getScore(){let c=0,w=0;S.answers.forEach(a=>{if(a==='correct')c++;else if(a==='wrong')w++});return{correct:c,wrong:w,answered:c+w}}
+function sysColor(){return S.system==="K"?"#1e4d7a":"#3d3225"}
+function sysName(){return S.system==="K"?"가타카나":"히라가나"}
+
+// ======================== RENDER ========================
+function render(){
+const app=document.getElementById("app"),ov=document.getElementById("overlay-root"),s=S;
+let h="";const col=sysColor();
+
+// ── OVERLAY (일시정지) ──
+if(s.paused){
+ov.innerHTML=`<div class="overlay" onclick="if(event.target===this)closePause()"><div class="overlay-card fade">
+<h3 style="font-size:17px;color:#3d3225;margin-bottom:20px;text-align:center">일시정지</h3>
+<div class="toggle-row"><div><div class="toggle-label">획순 다이어그램</div><div class="toggle-sub">온라인 시 정밀 획순 (KanjiVG)</div></div>
+<div class="toggle-track ${s.strokeOn?"on":""}" onclick="toggleStroke()"><div class="toggle-thumb"></div></div></div>
+<div style="margin-top:20px;display:flex;flex-direction:column;gap:8px">
+<button onclick="closePause()" style="width:100%;background:#3d3225;color:#fff;padding:14px;font-size:15px">계속하기</button>
+<button onclick="quitTest()" style="width:100%;background:transparent;color:#c0392b;border:1.5px solid #e0d6c8;padding:12px;font-size:14px">테스트 중단</button>
+</div></div></div>`;
+}else if(s.orderPopup){
+const c=sysColor();
+ov.innerHTML=`<div class="overlay" onclick="if(event.target===this)closeOrderPopup()"><div class="overlay-card fade" style="text-align:center">
+<p style="font-size:20px;margin-bottom:6px">📋</p>
+<h3 style="font-size:17px;color:#3d3225;font-weight:700;margin-bottom:4px">문제 순서</h3>
+<p style="font-size:12px;color:#a09080;margin-bottom:22px">어떤 순서로 연습할까요?</p>
+<div style="display:flex;flex-direction:column;gap:10px">
+<button onclick="confirmOrder(false)" style="width:100%;background:${c};color:#fff;padding:16px;font-size:15px;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:4px">
+<span>순서대로</span>
+<span style="font-size:11px;font-weight:400;opacity:.8">あ→い→う... 오십음 순</span>
+</button>
+<button onclick="confirmOrder(true)" style="width:100%;background:#fff;color:${c};border:2px solid ${c};padding:16px;font-size:15px;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:4px">
+<span>랜덤</span>
+<span style="font-size:11px;font-weight:400;opacity:.7">무작위 순서로 섞기</span>
+</button>
+</div>
+<button onclick="closeOrderPopup()" style="margin-top:14px;background:none;color:#b8a898;font-size:13px;padding:4px">취소</button>
+</div></div>`;
+}else{ov.innerHTML=""}
+
+// ── TITLE ──
+if(s.screen==="title"){
+h=`<div class="fade" style="text-align:center">
+<div style="margin-bottom:28px">
+<p class="brush" style="font-size:13px;color:#a09080;letter-spacing:6px;margin-bottom:10px">あ ア</p>
+<h1 style="font-size:28px;font-weight:700;color:#3d3225;margin-bottom:4px">일본어 문자 연습</h1>
+<div style="width:36px;height:2px;background:#c4a882;margin:12px auto 0;border-radius:1px"></div>
+</div>
+
+<div class="sys-grid">
+<div class="sys-card H" onclick="pickSystem('H')">
+<p class="brush" style="font-size:42px;color:#3d3225;line-height:1;margin-bottom:8px">あ</p>
+<p style="font-size:14px;font-weight:700;color:#3d3225;margin-bottom:6px">히라가나</p>
+<p class="brush" style="font-size:12px;color:#a09080;letter-spacing:2px;margin-bottom:8px">あいうえお</p>
+<div style="display:flex;flex-direction:column;gap:3px">
+<span style="font-size:10px;color:#b8a898">기본 오십음</span>
+<span style="font-size:10px;color:#b8a898">탁음 · 반탁음</span>
+<span style="font-size:10px;color:#b8a898">요음</span>
+</div>
+</div>
+<div class="sys-card K" onclick="pickSystem('K')">
+<p class="brush" style="font-size:42px;color:#1e4d7a;line-height:1;margin-bottom:8px">ア</p>
+<p style="font-size:14px;font-weight:700;color:#1e4d7a;margin-bottom:6px">가타카나</p>
+<p class="brush" style="font-size:12px;color:#6a8aaa;letter-spacing:2px;margin-bottom:8px">アイウエオ</p>
+<div style="display:flex;flex-direction:column;gap:3px">
+<span style="font-size:10px;color:#b8a898">기본 오십음</span>
+<span style="font-size:10px;color:#b8a898">탁음 · 반탁음</span>
+<span style="font-size:10px;color:#b8a898">요음</span>
+</div>
+</div>
+</div>
+
+<div class="toggle-row" style="margin-bottom:16px">
+<div style="text-align:left"><div class="toggle-label">획순 다이어그램</div><div class="toggle-sub">정답 확인 시 KanjiVG 획순 표시 (요음 제외)</div></div>
+<div class="toggle-track ${s.strokeOn?"on":""}" onclick="toggleStroke()"><div class="toggle-thumb"></div></div>
+</div>
+<button onclick="go('logs')" style="background:transparent;color:#8a7a66;border:1.5px solid #d4c8b8;width:100%;padding:13px;font-size:14px">오답 노트 (${s.logs.length})</button>
+</div>`
+}
+
+// ── SELECT ──
+else if(s.screen==="select"){
+const data=curData(),rows=curRows(),items=rowItems();
+const selRowCnt=items.filter((_,i)=>s.sel.has(i)).length;
+const cnt=items.filter((_,i)=>s.sel.has(i)).flatMap(r=>r.idx).length;
+const allSel=selRowCnt===items.length&&items.length>0;
+let rowsHTML="";let ri=0;
+rows.forEach(row=>{
+  if(row.section){
+    rowsHTML+=`<div class="sec-div">${row.section}</div>`;
+  }else{
+    const i=ri++;const on=s.sel.has(i);
+    const preview=row.idx.map(j=>data[j].c).join(" ");
+    rowsHTML+=`<button class="row-btn ${on?"on":"off"}${on?" "+s.system:""}" onclick="toggleRow(${i})">
+<span class="chk ${on?"on "+s.system:"off"}">${on?"✓":""}</span>
+<span style="display:flex;flex-direction:column;gap:2px;min-width:80px">
+  <span style="font-weight:600;color:${col};font-size:13px">${row.label}</span>
+  <span style="font-size:10px;color:#b0a090;letter-spacing:.5px">${row.kr}</span>
+</span>
+<span class="brush" style="flex:1;color:#8a7a66;font-size:15px;letter-spacing:2px;text-align:right">${preview}</span>
+</button>`;
+  }
+});
+h=`<div class="fade">
+<div style="display:flex;align-items:center;margin-bottom:16px">
+<button onclick="go('title')" style="background:none;color:#8a7a66;padding:4px 0;font-size:13px">← 뒤로</button>
+<h2 style="flex:1;text-align:center;font-size:17px;color:${col};font-weight:700">${sysName()} 연습</h2>
+<div style="width:40px"></div>
+</div>
+<div class="mode-tabs ${s.system}">
+<button class="mode-tab ${s.mode==='write'?'active':''} ${s.system}" onclick="setMode('write')">발음 → 문자 쓰기</button>
+<button class="mode-tab ${s.mode==='read'?'active':''} ${s.system}" onclick="setMode('read')">문자 → 발음 맞추기</button>
+</div>
+<div onclick="toggleSelAll()" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;cursor:pointer;border:1.5px solid ${allSel?col:'#e0d6c8'};background:${allSel?'#faf6f0':'#fff'};margin-bottom:12px;transition:all .15s">
+<span class="chk ${allSel?'on '+s.system:'off'}">${allSel?'✓':''}</span>
+<span style="font-size:13px;font-weight:600;color:${allSel?col:'#8a7a66'}">전체 선택</span>
+<span style="margin-left:auto;font-size:11px;color:#b8a898">${cnt>0?cnt+'자 선택됨':''}</span>
+</div>
+<div style="display:flex;flex-direction:column;gap:5px;margin-bottom:20px">${rowsHTML}</div>
+<button onclick="startFromSel()" ${cnt===0?"disabled":""} style="width:100%;padding:15px;font-size:16px;background:${cnt>0?col:"#ccc"};color:#fff;border-radius:10px;opacity:${cnt>0?1:.5}">${cnt>0?cnt+"자 테스트 시작":"범위를 선택하세요"}</button>
+</div>`
+}
+
+// ── TEST ──
+else if(s.screen==="test"){
+const cur=s.deck[s.idx],total=s.deck.length,sc=getScore();
+const allAnswered=s.answers.every(a=>a!==null);
+const pct=(sc.answered/total)*100;
+const isReview=s.answers[s.idx]!==null;
+const charIdx=curData().indexOf(cur);
+let body="";
+
+const questionDisplay=s.mode==='write'
+  ?`<p style="font-size:12px;color:#b8a898;margin-bottom:12px;letter-spacing:1px">이 발음의 ${sysName()}를 써 보세요</p>
+<p style="font-size:64px;font-weight:700;color:#3d3225;font-family:Georgia,serif;letter-spacing:2px;line-height:1">${cur.r}</p>
+<button class="speak-btn" onclick="speak(curData()[${charIdx}])" style="margin-top:14px">🔊 발음 듣기</button>`
+  :`<p style="font-size:12px;color:#b8a898;margin-bottom:12px;letter-spacing:1px">이 문자의 발음은?</p>
+<p class="brush" style="font-size:80px;color:#3d3225;line-height:1">${cur.c}</p>`;
+
+if(!s.revealed&&!isReview){
+  body=`<button onclick="reveal()" style="width:100%;background:${col};color:#fff;padding:15px;font-size:16px">정답 확인</button>`;
+}else{
+  let answerContent;
+  if(s.mode==='write'){
+    let strokeSection="";
+    if(s.strokeOn){
+      if(cur.u){
+        strokeSection=`<div style="width:1px;height:80px;background:#e0d6c8;align-self:center"></div>
+<div style="text-align:center"><div class="stroke-box" id="stroke-target"><span style="font-size:11px;color:#b8a898">불러오는 중...</span></div>
+<p style="font-size:11px;color:#a09080;margin-top:4px">획순</p></div>`;
+      }else{
+        // 요음 복합 문자 안내
+        const parts=cur.d.split(' + ');
+        strokeSection=`<div style="width:1px;height:80px;background:#e0d6c8;align-self:center"></div>
+<div class="compound-box">
+<p style="font-size:11px;color:#a09080;margin-bottom:8px">복합 문자</p>
+<p class="brush" style="font-size:28px;color:#3d3225;letter-spacing:4px">${parts[0]} <span style="font-size:14px;color:#a09080">+</span> ${parts[1]||''}</p>
+<p style="font-size:10px;color:#b8a898;margin-top:6px">두 문자를 합쳐 씀</p>
+</div>`;
+      }
+    }
+    answerContent=`<div class="answer-char-row">
+<div style="text-align:center;${s.strokeOn?"":"flex:1"}">
+<p class="brush" style="font-size:${s.strokeOn?88:100}px;color:#c0392b;line-height:1">${cur.c}</p>
+<p style="font-size:11px;color:#a09080;margin-top:4px">정답</p>
+</div>${strokeSection}</div>
+<div id="stroke-legend-area"></div>
+<p style="font-size:12px;color:#6a5a4a;margin-top:10px;text-align:center;line-height:1.6">${cur.d}</p>`;
+  }else{
+    answerContent=`<div style="text-align:center">
+<p style="font-size:48px;font-weight:700;color:#c0392b;font-family:Georgia,serif;letter-spacing:2px;line-height:1;margin-bottom:4px">${cur.r}</p>
+<button class="speak-btn" onclick="speak(curData()[${charIdx}])">🔊 발음 듣기</button>
+</div>`;
+  }
+
+  const judgeButtons=isReview
+    ?`<div style="text-align:center;padding:8px 0"><span style="font-size:13px;color:#8a7a66">이미 답한 문제입니다 <span class="review-badge ${s.answers[s.idx]}">${s.answers[s.idx]==='correct'?'⭕ 맞음':'❌ 틀림'}</span></span></div>`
+    :`<div style="display:flex;gap:10px">
+<button onclick="judge(false)" style="flex:1;padding:13px;font-size:15px;border:1.5px solid #e0d6c8;background:#fff;color:#c0392b">❌ 틀림</button>
+<button onclick="judge(true)" style="flex:1;padding:13px;font-size:15px;border:1.5px solid #2d8a4e;background:#2d8a4e;color:#fff">⭕ 맞음</button>
+</div>`;
+
+  body=`<div class="${isReview?'':'slide'}"><div class="answer-area">${answerContent}</div>${judgeButtons}</div>`;
+}
+
+let dots='<div class="dot-row">';
+for(let i=0;i<total;i++){
+  let cls='dot';
+  if(s.answers[i]==='correct')cls+=' correct';
+  else if(s.answers[i]==='wrong')cls+=' wrong';
+  else cls+=' empty';
+  if(i===s.idx)cls+=' current';
+  dots+=`<div class="${cls}" onclick="jumpTo(${i})" title="${s.deck[i].r}"></div>`;
+}
+dots+='</div>';
+
+const finishBtn=allAnswered?`<div style="margin-top:12px"><button onclick="finishTest()" style="width:100%;background:${col};color:#fff;padding:15px;font-size:15px;border-radius:10px">결과 확인</button></div>`:'';
+
+h=`<div class="fade card">
+<div class="progress-track"><div class="progress-bar" style="width:${pct}%;background:${col}"></div></div>
+<div style="padding:20px 28px 28px">
+<div class="test-header">
+<button onclick="backToSelect()" style="background:none;color:#8a7a66;font-size:13px;padding:0;font-weight:500;display:flex;align-items:center;gap:3px">← 뒤로</button>
+<span style="font-size:13px;color:#a09080">⭕ ${sc.correct}　❌ ${sc.wrong}</span>
+<button class="settings-btn" onclick="openPause()">${GEAR}</button>
+</div>
+<div class="nav-row">
+<button class="nav-btn" onclick="navPrev()" ${s.idx<=0?'disabled':''}>◀</button>
+${dots}
+<button class="nav-btn" onclick="navNext()" ${s.idx>=total-1?'disabled':''}>▶</button>
+</div>
+<p style="text-align:center;font-size:11px;color:#b8a898;margin-top:-8px;margin-bottom:16px">${s.idx+1} / ${total} <span class="sys-badge ${s.system}">${s.system==="K"?"가타":"히라"}</span></p>
+<div style="text-align:center;margin-bottom:24px">${questionDisplay}</div>
+${body}
+${finishBtn}
+</div></div>`
+}
+
+// ── RESULT ──
+else if(s.screen==="result"){
+const total=s.deck.length,sc=getScore(),pct=Math.round((sc.correct/total)*100);
+const emoji=pct>=90?"🎉":pct>=70?"👏":pct>=50?"💪":"📝";
+const wrongChars=s.deck.filter((_,i)=>s.answers[i]==='wrong');
+const wh=wrongChars.length>0?`<div style="background:#fdf5f5;border-radius:10px;padding:14px 18px;text-align:left;margin-bottom:16px">
+<p style="font-size:11px;color:#c0392b;font-weight:600;margin-bottom:8px">틀린 글자</p>
+<p class="brush" style="font-size:22px;color:#3d3225;letter-spacing:6px">${wrongChars.map(c=>c.c).join("  ")}</p>
+<p style="font-size:11px;color:#a09080;margin-top:4px">${wrongChars.map(c=>c.r).join(", ")}</p>
+</div>`:"";
+const rb=wrongChars.length>0?`<button onclick="retryWrong()" style="width:100%;background:#c0392b;color:#fff;padding:14px;font-size:14px">틀린 ${wrongChars.length}자만 다시</button>`:"";
+h=`<div class="fade" style="text-align:center">
+<div class="card" style="padding:36px 28px;margin-bottom:16px">
+<p style="font-size:40px;margin-bottom:8px">${emoji}</p>
+<h2 style="font-size:22px;color:${col};font-weight:700;margin-bottom:4px">연습 완료!</h2>
+<p style="font-size:12px;color:#a09080;margin-bottom:20px">${sysName()} · ${s.mode==='write'?'쓰기':'읽기'}</p>
+<div style="display:flex;justify-content:center;gap:24px;margin-bottom:20px">
+<div><p style="font-size:28px;font-weight:700;color:#2d8a4e">${sc.correct}</p><p style="font-size:11px;color:#a09080">맞음</p></div>
+<div style="width:1px;background:#e8ddd0"></div>
+<div><p style="font-size:28px;font-weight:700;color:#c0392b">${sc.wrong}</p><p style="font-size:11px;color:#a09080">틀림</p></div>
+<div style="width:1px;background:#e8ddd0"></div>
+<div><p style="font-size:28px;font-weight:700;color:${col}">${pct}%</p><p style="font-size:11px;color:#a09080">정답률</p></div>
+</div>${wh}
+</div>
+<div style="display:flex;flex-direction:column;gap:8px">
+<button onclick="go('select')" style="width:100%;background:${col};color:#fff;padding:15px;font-size:15px">다시 하기</button>
+${rb}
+<button onclick="go('title')" style="width:100%;background:transparent;color:#8a7a66;border:1.5px solid #d4c8b8;padding:14px;font-size:14px">홈으로</button>
+</div></div>`
+}
+
+// ── LOGS ──
+else if(s.screen==="logs"){
+let items="";
+if(s.logs.length===0){
+  items=`<div style="text-align:center;padding:48px 0;color:#b8a898"><p style="font-size:32px;margin-bottom:12px">📭</p><p style="font-size:14px">아직 오답 기록이 없습니다</p></div>`;
+}else{
+  [...s.logs].reverse().forEach(log=>{
+    const bClass=log.sys||"H";
+    const bLabel=log.sys==="K"?"가타":"히라";
+    items+=`<div class="log-card">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+<span><span class="sys-badge ${bClass}">${bLabel}</span><span style="font-size:11px;color:#a09080">${log.date}</span></span>
+<button onclick="delLog(${log.id})" style="background:none;color:#c0a0a0;font-size:12px;padding:2px 6px">삭제</button>
+</div>
+<p class="brush" style="font-size:20px;color:#3d3225;letter-spacing:4px;margin-bottom:6px">${log.display.join("  ")}</p>
+<p style="font-size:11px;color:#a09080;margin-bottom:10px">${log.chars.join(", ")} · ${log.label}</p>
+<button onclick="startLog(${log.id})" style="width:100%;background:#3d3225;color:#fff;padding:10px;font-size:13px">이 ${log.chars.length}자 복습</button>
+</div>`;
+  });
+}
+h=`<div class="fade">
+<div style="display:flex;align-items:center;margin-bottom:20px">
+<button onclick="go('title')" style="background:none;color:#8a7a66;padding:4px 0;font-size:13px">← 뒤로</button>
+<h2 style="flex:1;text-align:center;font-size:18px;color:#3d3225;font-weight:600">오답 노트</h2>
+<div style="width:40px"></div>
+</div>
+${items}
+<p style="text-align:center;font-size:11px;color:#b8a898;margin-top:16px">최근 10개 기록만 보관됩니다</p>
+</div>`
+}
+
+app.innerHTML=h;
+if(s.screen==="test"&&(s.revealed||s.answers[s.idx]!==null)&&s.strokeOn&&s.mode==='write'&&s.deck[s.idx].u){
+  fetchSVG(s.deck[s.idx]).then(svg=>drawSVG(svg,"stroke-target"))
+}
+}
+
+// ======================== ACTIONS ========================
+function go(scr){S.screen=scr;S.paused=false;render()}
+function setMode(m){S.mode=m;render()}
+
+function pickSystem(sys){
+  S.system=sys;
+  S.sel=new Set(); // 기본 전체 해제
+  S.screen="select";render()
+}
+
+function toggleRow(i){S.sel.has(i)?S.sel.delete(i):S.sel.add(i);render()}
+function toggleStroke(){S.strokeOn=!S.strokeOn;localStorage.setItem(SKEY,S.strokeOn);render()}
+function openPause(){S.paused=true;render()}
+function closePause(){S.paused=false;render()}
+
+function backToSelect(){
+  const wrongChars=S.deck.filter((_,i)=>S.answers[i]==='wrong');
+  if(wrongChars.length>0){
+    const log={id:Date.now(),sys:S.system,date:new Date().toLocaleString("ko-KR"),
+      label:S.testLabel+" (중단)",chars:wrongChars.map(c=>c.r),display:wrongChars.map(c=>c.c)};
+    S.logs=saveLogs([...S.logs,log])
+  }
+  S.paused=false;S.screen="select";render()
+}
+
+function quitTest(){
+  const wrongChars=S.deck.filter((_,i)=>S.answers[i]==='wrong');
+  if(wrongChars.length>0){
+    const log={id:Date.now(),sys:S.system,date:new Date().toLocaleString("ko-KR"),
+      label:S.testLabel+" (중단)",chars:wrongChars.map(c=>c.r),display:wrongChars.map(c=>c.c)};
+    S.logs=saveLogs([...S.logs,log])
+  }
+  S.paused=false;S.screen="title";render()
+}
+
+function toggleSelAll(){
+  const items=rowItems();
+  const allOn=items.every((_,i)=>S.sel.has(i));
+  if(allOn){S.sel=new Set()}else{S.sel=new Set(items.map((_,i)=>i))}
+  render()
+}
+
+function startTest(chars,label,isRandom){
+  S.deck=isRandom?shuffle(chars):[...chars];
+  S.idx=0;S.revealed=false;
+  S.answers=new Array(chars.length).fill(null);
+  S.testLabel=label;S.screen="test";S.paused=false;S.orderPopup=false;render()
+}
+
+function startFromSel(){
+  const items=rowItems(),data=curData();
+  const chars=items.filter((_,i)=>S.sel.has(i)).flatMap(r=>r.idx.map(j=>data[j]));
+  if(!chars.length)return;
+  const label=items.filter((_,i)=>S.sel.has(i)).map(r=>r.label).join(", ");
+  S.pendingChars=chars;S.pendingLabel=label;
+  S.orderPopup=true;render()
+}
+
+function closeOrderPopup(){S.orderPopup=false;render()}
+
+function confirmOrder(isRandom){
+  if(!S.pendingChars)return;
+  startTest(S.pendingChars,S.pendingLabel,isRandom);
+  S.pendingChars=null;S.pendingLabel="";
+}
+
+function startLog(id){
+  const log=S.logs.find(l=>l.id===id);if(!log)return;
+  S.system=log.sys||"H";
+  const data=curData();
+  const chars=log.chars.map(r=>data.find(d=>d.r===r)).filter(Boolean);
+  if(!chars.length)return;
+  startTest(chars,"오답 복습",true)
+}
+
+function retryWrong(){
+  startTest(S.deck.filter((_,i)=>S.answers[i]==='wrong'),"오답 재시험",true)
+}
+
+function reveal(){S.revealed=true;render()}
+
+function judge(ok){
+  S.answers[S.idx]=ok?'correct':'wrong';
+  S.revealed=false;
+  const total=S.deck.length;
+  let next=-1;
+  for(let i=S.idx+1;i<total;i++){if(S.answers[i]===null){next=i;break}}
+  if(next===-1){for(let i=0;i<S.idx;i++){if(S.answers[i]===null){next=i;break}}}
+  if(next!==-1)S.idx=next;
+  render()
+}
+
+function finishTest(){
+  const wrongChars=S.deck.filter((_,i)=>S.answers[i]==='wrong');
+  if(wrongChars.length>0){
+    const log={id:Date.now(),sys:S.system,date:new Date().toLocaleString("ko-KR"),
+      label:S.testLabel,chars:wrongChars.map(c=>c.r),display:wrongChars.map(c=>c.c)};
+    S.logs=saveLogs([...S.logs,log])
+  }
+  S.screen="result";render()
+}
+
+function navPrev(){if(S.idx>0){S.idx--;S.revealed=false;render()}}
+function navNext(){if(S.idx<S.deck.length-1){S.idx++;S.revealed=false;render()}}
+function jumpTo(i){S.idx=i;S.revealed=false;render()}
+function delLog(id){S.logs=saveLogs(S.logs.filter(l=>l.id!==id));render()}
+
+render();
+</script>
+</body>
+</html>
